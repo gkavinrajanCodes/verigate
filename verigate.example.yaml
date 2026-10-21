@@ -1,0 +1,72 @@
+# Verigate configuration (copy to verigate.yaml and edit).
+# Secrets are never stored here: only the *names* of environment variables.
+
+gateway:
+  listen: "127.0.0.1:8080"
+  audit_secret_env: VERIGATE_AUDIT_SECRET
+  queue_url: "redis://localhost:6379/0"        # PulseDB or any Redis-compatible server
+  queue_key: "verigate:audits"
+  job_ttl_seconds: 86400                       # safety-net TTL for unscored audit jobs
+  enqueue_buffer: 4096                         # in-memory buffer; audits are dropped (and counted) when full
+  upstream_timeout_seconds: 300
+  # SHA-256 hex digests of client API keys (the bearer token) that opted out of auditing.
+  audit_opt_out_key_hashes: []
+
+models:
+  qwen2.5-0.5b-instruct:
+    reference:
+      hf_repo: "Qwen/Qwen2.5-0.5B-Instruct"
+      revision: "main"                         # pin to a commit hash for real experiments
+      dtype: "bfloat16"
+      chat_template: "official"                # from tokenizer_config.json at that revision
+    max_scored_tokens: 512
+
+providers:
+  lab-honest:
+    base_url: "http://127.0.0.1:9000/s/honest/v1"
+    api_key_env: ""
+    models: { qwen2.5-0.5b-instruct: "qwen2.5-0.5b-instruct" }   # alias -> provider's model id
+    request_logprobs: true
+    audit_rate: 0.10
+    trusted: false                              # trusted providers' audits are also added to the null
+  lab-noisy:
+    base_url: "http://127.0.0.1:9000/s/honest-noisy/v1"
+    models: { qwen2.5-0.5b-instruct: "qwen2.5-0.5b-instruct" }
+    request_logprobs: true
+    audit_rate: 0.10
+  lab-q4:
+    base_url: "http://127.0.0.1:9000/s/q4/v1"
+    models: { qwen2.5-0.5b-instruct: "qwen2.5-0.5b-instruct" }
+    request_logprobs: true
+    audit_rate: 0.10
+  # openrouter:
+  #   base_url: "https://openrouter.ai/api/v1"
+  #   api_key_env: OPENROUTER_API_KEY
+  #   models: { qwen2.5-7b-instruct: "qwen/qwen-2.5-7b-instruct" }
+  #   pin_upstream_provider: "Together"        # adds provider.order=[...] + allow_fallbacks=false
+  #   request_logprobs: true
+  #   audit_rate: 0.05
+
+verifier:
+  device: "auto"                               # auto | cuda | cpu
+  batch_size: 8
+  batch_wait_ms: 200
+  max_batch_tokens: 16384
+
+stats:
+  window: 200
+  min_audits: 50
+  alpha_ok: 0.05
+  alpha_alert: 0.0001
+  tie_margin_nats: 0.5
+  smoothing_eps: 1.0e-6
+  early_tokens: 32
+  min_null_per_bucket: 50
+  webhook_url: ""                              # optional: POSTed on every verdict change
+
+dashboard:
+  listen: "127.0.0.1:8090"
+  report_key_env: VERIGATE_REPORT_KEY
+
+storage:
+  sqlite_path: "./data/verigate.db"
