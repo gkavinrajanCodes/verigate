@@ -1,0 +1,30 @@
+{
+  "s2": {
+    "auc": 0.7536,
+    "honest_median": 0.1332,
+    "attack_median": 1.5051,
+    "n_honest": 25,
+    "n_attack": 25
+  },
+  "s3": {
+    "auc": 0.9104,
+    "honest_median": -0.2313,
+    "attack_median": 2.4717,
+    "n_honest": 25,
+    "n_attack": 25
+  },
+  "s2_early": {
+    "auc": 0.7104,
+    "honest_median": 0.3173,
+    "attack_median": 1.0993,
+    "n_honest": 25,
+    "n_attack": 25
+  },
+  "s3_early": {
+    "auc": 0.8448,
+    "honest_median": -0.1036,
+    "attack_median": 1.8501,
+    "n_honest": 25,
+    "n_attack": 25
+  }
+}

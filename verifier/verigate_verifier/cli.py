@@ -59,7 +59,12 @@ def cmd_verifier(args):
 def cmd_calibrate(args):
     """Builds null distribution for a model."""
     cfg = load_config(args.config)
-    n = calibrate_model(cfg, args.model)
+    n = calibrate_model(
+        config=cfg,
+        model_alias=args.model,
+        prompts_path=args.prompts,
+        clear_existing=args.clear,
+    )
     log.info("Calibrated %s with %d null samples.", args.model, n)
 
 
@@ -126,6 +131,8 @@ def main():
     # calibrate
     p_cal = subparsers.add_parser("calibrate", help="Build null distributions")
     p_cal.add_argument("--model", required=True, help="Model alias to calibrate")
+    p_cal.add_argument("--prompts", default=None, help="Path to JSONL prompt file")
+    p_cal.add_argument("--clear", action="store_true", help="Clear existing null samples before calibrating")
     p_cal.set_defaults(func=cmd_calibrate)
 
     # dashboard

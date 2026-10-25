@@ -1,0 +1,29 @@
+# Dockerfile for Verigate Python Services (Verifier Worker, Dashboard, Substitution Lab)
+FROM python:3.11-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy verifier project and install dependencies
+COPY verifier/ /app/verifier/
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -e /app/verifier
+
+# Copy the rest of the application
+COPY lab/ /app/lab/
+COPY data/ /app/data/
+COPY verigate.yaml /app/verigate.yaml
+
+ENV PYTHONPATH="/app:/app/verifier"
+ENV PYTHONUNBUFFERED=1
+
+EXPOSE 8090 9000
+
+# Default command runs the verifier worker
+CMD ["python", "-m", "verigate_verifier.cli", "--config", "/app/verigate.yaml", "verifier"]

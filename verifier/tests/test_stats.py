@@ -52,6 +52,8 @@ def test_verdict_state_machine_flow(tmp_path):
             "model_alias": model,
             "received_at": f"2026-10-21T00:{i:02d}:00Z",
             "status": "scored",
+            "temperature": 1.0,
+            "tokenization": "provider_tokens",
             "s2": float(v),
         })
 
@@ -68,6 +70,8 @@ def test_verdict_state_machine_flow(tmp_path):
             "model_alias": model,
             "received_at": f"2026-10-21T01:{i:02d}:00Z",
             "status": "scored",
+            "temperature": 1.0,
+            "tokenization": "provider_tokens",
             "s2": 15.0 + float(np.random.normal(0.0, 0.5)),
         })
 

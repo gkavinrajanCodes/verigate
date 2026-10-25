@@ -1,0 +1,60 @@
+{"id": "p01", "category": "code", "prompt": "Write a Python function to check if a binary tree is symmetric."}
+{"id": "p02", "category": "code", "prompt": "Write a SQL query to find the second highest salary from an Employee table."}
+{"id": "p03", "category": "code", "prompt": "Implement a binary search algorithm in Python and explain its time complexity."}
+{"id": "p04", "category": "code", "prompt": "Write a function in Python that takes a list of integers and returns all pairs that sum to a target."}
+{"id": "p05", "category": "code", "prompt": "How do you handle concurrency in Go using goroutines and channels? Give a short example."}
+{"id": "p06", "category": "code", "prompt": "Write a regular expression to validate an IPv4 address and explain each component."}
+{"id": "p07", "category": "code", "prompt": "Explain the difference between a process and a thread in modern operating systems."}
+{"id": "p08", "category": "code", "prompt": "Write a Python generator function that yields the Fibonacci sequence indefinitely."}
+{"id": "p09", "category": "code", "prompt": "What is the purpose of an index in a relational database and how does a B-tree index work?"}
+{"id": "p10", "category": "code", "prompt": "Write a Python decorator that logs the execution time of any function."}
+{"id": "p11", "category": "structured", "prompt": "Extract the entities from this text as JSON with keys 'company', 'product', and 'year': OpenAI launched ChatGPT in November 2022."}
+{"id": "p12", "category": "structured", "prompt": "Convert the following table data into a valid JSON array of objects: Name, Age, City; Bob, 25, Seattle; Carol, 31, Austin."}
+{"id": "p13", "category": "structured", "prompt": "Format this recipe into JSON with keys 'title', 'prep_time_minutes', and 'ingredients': Guacamole takes 10 minutes: avocados, lime, cilantro, salt, onion."}
+{"id": "p14", "category": "structured", "prompt": "Create a JSON schema for a user profile object with fields: username (string), age (integer >= 18), and tags (array of strings)."}
+{"id": "p15", "category": "structured", "prompt": "Parse this log entry into JSON: [2026-10-24 14:22:01] ERROR [auth_service] User 402 invalid credentials"}
+{"id": "p16", "category": "reasoning", "prompt": "A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost? Show your reasoning."}
+{"id": "p17", "category": "reasoning", "prompt": "If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets?"}
+{"id": "p18", "category": "reasoning", "prompt": "You have a 3-gallon jug and a 5-gallon jug, and an unlimited supply of water. How do you measure exactly 4 gallons?"}
+{"id": "p19", "category": "reasoning", "prompt": "In a race, you overtake the person in second place. What position are you in now?"}
+{"id": "p20", "category": "reasoning", "prompt": "Explain why division by zero is mathematically undefined rather than infinity."}
+{"id": "p21", "category": "science", "prompt": "Explain why the sky appears blue during the day and red/orange at sunset."}
+{"id": "p22", "category": "science", "prompt": "What is the Doppler effect? Provide both an acoustic and an astronomical example."}
+{"id": "p23", "category": "science", "prompt": "How does mRNA vaccine technology work inside the human immune system?"}
+{"id": "p24", "category": "science", "prompt": "Describe the greenhouse effect and how greenhouse gases trap infrared radiation."}
+{"id": "p25", "category": "science", "prompt": "What causes oceanic tides and why are there typically two high tides each day?"}
+{"id": "p26", "category": "science", "prompt": "Explain the difference between nuclear fission and nuclear fusion."}
+{"id": "p27", "category": "science", "prompt": "How do lithium-ion batteries store and release electrical energy during charge cycles?"}
+{"id": "p28", "category": "science", "prompt": "What is CRISPR-Cas9 and how does it locate and cut target DNA sequences?"}
+{"id": "p29", "category": "science", "prompt": "Summarize Einstein's principle of equivalence in general relativity."}
+{"id": "p30", "category": "science", "prompt": "Explain what photosynthesis produces and why chlorophyll reflects green light."}
+{"id": "p31", "category": "explanation", "prompt": "Explain how a content delivery network (CDN) reduces latency for web users worldwide."}
+{"id": "p32", "category": "explanation", "prompt": "What is public key cryptography and how does RSA encryption ensure secure communication?"}
+{"id": "p33", "category": "explanation", "prompt": "Explain the concept of inflation in macroeconomics and two common causes."}
+{"id": "p34", "category": "explanation", "prompt": "Describe how modern GPS receivers determine position using satellites and trilateration."}
+{"id": "p35", "category": "explanation", "prompt": "What is the difference between TCP and UDP protocols and when is each preferred?"}
+{"id": "p36", "category": "explanation", "prompt": "Explain how a bloom filter works, including why false positives can happen but false negatives cannot."}
+{"id": "p37", "category": "explanation", "prompt": "What is amortized analysis in algorithm design? Use dynamic array resizing as an example."}
+{"id": "p38", "category": "explanation", "prompt": "Explain the concept of eventual consistency in distributed systems like DynamoDB."}
+{"id": "p39", "category": "explanation", "prompt": "How does zero-knowledge proof work at a conceptual level? Use the cave analogy."}
+{"id": "p40", "category": "explanation", "prompt": "Explain how transformer self-attention computes query, key, and value vectors."}
+{"id": "p41", "category": "creative", "prompt": "Write a haiku about the sound of rain falling on a tin roof."}
+{"id": "p42", "category": "creative", "prompt": "Write a two-sentence story with an unexpected plot twist at the end."}
+{"id": "p43", "category": "creative", "prompt": "Compose a brief poem comparing the internet to an ancient library."}
+{"id": "p44", "category": "creative", "prompt": "Write a witty marketing tagline for a brand of coffee made for night-shift workers."}
+{"id": "p45", "category": "creative", "prompt": "Describe an alien landscape where the ground is crystalline and the sky is violet."}
+{"id": "p46", "category": "advice", "prompt": "Give three practical tips for improving sleep hygiene backed by sleep science."}
+{"id": "p47", "category": "advice", "prompt": "How can an engineer effectively communicate technical debt to non-technical stakeholders?"}
+{"id": "p48", "category": "advice", "prompt": "What are three strategies for staying focused while working remotely?"}
+{"id": "p49", "category": "advice", "prompt": "Suggest a high-protein vegetarian meal prep plan for a busy weekday."}
+{"id": "p50", "category": "advice", "prompt": "What are effective debugging steps when facing an intermittent race condition?"}
+{"id": "p51", "category": "history", "prompt": "What led to the invention of the printing press by Johannes Gutenberg and why was movable type revolutionary?"}
+{"id": "p52", "category": "history", "prompt": "Summarize the significance of the Rosetta Stone in unlocking ancient Egyptian hieroglyphics."}
+{"id": "p53", "category": "history", "prompt": "What was the Bretton Woods conference of 1944 and what international institutions did it establish?"}
+{"id": "p54", "category": "history", "prompt": "Describe the Apollo 11 moon landing in July 1969 and Neil Armstrong's famous first words."}
+{"id": "p55", "category": "history", "prompt": "Why was the steam engine critical to the Industrial Revolution in Great Britain?"}
+{"id": "p56", "category": "short", "prompt": "What is the capital of Australia?"}
+{"id": "p57", "category": "short", "prompt": "Which planet in the solar system has the most moons?"}
+{"id": "p58", "category": "short", "prompt": "Who wrote the play Hamlet?"}
+{"id": "p59", "category": "short", "prompt": "What is the boiling point of water in degrees Fahrenheit at sea level?"}
+{"id": "p60", "category": "short", "prompt": "What chemical element has the symbol Au?"}

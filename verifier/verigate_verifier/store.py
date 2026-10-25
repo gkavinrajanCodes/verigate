@@ -110,6 +110,20 @@ class Store:
             ).fetchone()
             return row["c"] if row else 0
 
+    def get_all_recent_audits(self, limit: int = 50) -> list[sqlite3.Row]:
+        sql = """
+        SELECT * FROM audits
+        WHERE status = 'scored'
+        ORDER BY rowid DESC LIMIT ?
+        """
+        with self._conn() as conn:
+            return list(conn.execute(sql, (limit,)).fetchall())
+
+    def get_total_audits_count(self) -> int:
+        with self._conn() as conn:
+            row = conn.execute("SELECT COUNT(*) as c FROM audits WHERE status = 'scored'").fetchone()
+            return row["c"] if row else 0
+
     # ------------------------------------------------------------------
     # Null Samples (Empirical Calibration)
     # ------------------------------------------------------------------
@@ -127,11 +141,18 @@ class Store:
         with self._conn() as conn:
             conn.executemany(sql, params)
 
+    def clear_null_samples(self, model_alias: str):
+        with self._conn() as conn:
+            conn.execute("DELETE FROM null_samples WHERE model_alias = ?", (model_alias,))
+
     def get_null_samples(
         self, model_alias: str, signal: str, temp_bucket: str | None = None, len_bucket: str | None = None
     ) -> list[float]:
-        q = "SELECT value FROM null_samples WHERE model_alias = ? AND signal = ?"
-        params: list[Any] = [model_alias, signal]
+        q = "SELECT value FROM null_samples WHERE model_alias = ?"
+        params: list[Any] = [model_alias]
+        if signal:
+            q += " AND signal = ?"
+            params.append(signal)
         if temp_bucket:
             q += " AND temp_bucket = ?"
             params.append(temp_bucket)

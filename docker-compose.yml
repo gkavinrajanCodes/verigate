@@ -1,0 +1,77 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: verigate-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: verigate-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - VERIGATE_AUDIT_SECRET=${VERIGATE_AUDIT_SECRET:-dev-secret-change-me}
+    volumes:
+      - ./verigate.yaml:/etc/verigate/verigate.yaml:ro
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  verifier:
+    build:
+      context: .
+      dockerfile: Dockerfile.verifier
+    container_name: verigate-verifier
+    environment:
+      - VERIGATE_AUDIT_SECRET=${VERIGATE_AUDIT_SECRET:-dev-secret-change-me}
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./verigate.yaml:/app/verigate.yaml:ro
+      - ./data:/app/data
+      - hf-cache:/root/.cache/huggingface
+    depends_on:
+      - redis
+    restart: unless-stopped
+    command: ["python", "-m", "verigate_verifier.cli", "--config", "/app/verigate.yaml", "verifier"]
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.verifier
+    container_name: verigate-dashboard
+    ports:
+      - "8090:8090"
+    environment:
+      - VERIGATE_REPORT_KEY=${VERIGATE_REPORT_KEY:-dev-report-key}
+    volumes:
+      - ./verigate.yaml:/app/verigate.yaml:ro
+      - ./data:/app/data:ro
+    depends_on:
+      - redis
+    restart: unless-stopped
+    command: ["python", "-m", "verigate_verifier.cli", "--config", "/app/verigate.yaml", "dashboard", "--host", "0.0.0.0", "--port", "8090"]
+
+  lab:
+    build:
+      context: .
+      dockerfile: Dockerfile.verifier
+    container_name: verigate-lab
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./verigate.yaml:/app/verigate.yaml:ro
+      - hf-cache:/root/.cache/huggingface
+    restart: unless-stopped
+    command: ["python", "-m", "lab.server", "--host", "0.0.0.0", "--port", "9000", "--scenarios", "honest,honest-noisy,q8,q4,truncate,sysprompt,temp-cheat,fake-logprobs"]
+
+volumes:
+  redis-data:
+  hf-cache:

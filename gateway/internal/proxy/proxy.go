@@ -14,12 +14,19 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"verigate/gateway/internal/audit"
 	"verigate/gateway/internal/config"
 	"verigate/gateway/internal/metrics"
 )
+
+var bufioReaderPool = sync.Pool{
+	New: func() any {
+		return bufio.NewReaderSize(nil, 32<<10)
+	},
+}
 
 const maxBodyBytes = 32 << 20
 
@@ -140,6 +147,11 @@ func parseRequest(body []byte) (*parsedRequest, error) {
 	get("top_p", &p.TopP)
 	get("top_k", &p.TopK)
 	get("seed", &p.Seed)
+	var nChoice int
+	get("n", &nChoice)
+	if nChoice > 1 {
+		pr.unsupported = true
+	}
 	get("max_tokens", &p.MaxTokens)
 	if p.MaxTokens == nil {
 		get("max_completion_tokens", &p.MaxTokens)
@@ -173,6 +185,11 @@ func buildUpstream(pr *parsedRequest, p *config.Provider) ([]byte, error) {
 			top = 5
 		}
 		out["top_logprobs"] = json.RawMessage(fmt.Sprint(top))
+	}
+	if pr.stream {
+		if _, ok := out["stream_options"]; !ok {
+			out["stream_options"] = json.RawMessage(`{"include_usage":true}`)
+		}
 	}
 	if p.PinUpstreamProvider != "" {
 		pin, _ := json.Marshal(map[string]any{
@@ -281,7 +298,12 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	isSSE := strings.HasPrefix(resp.Header.Get("Content-Type"), "text/event-stream")
 	busy += time.Since(tHdr)
 
-	t := &tee{}
+	auditSelected := !s.cfg.OptedOut(bearer(r)) && audit.Selected(s.cfg.AuditSecret, requestID, prov.Rate())
+	var t *tee
+	if auditSelected {
+		t = &tee{}
+	}
+
 	ok := false
 	if resp.StatusCode != http.StatusOK {
 		w.WriteHeader(resp.StatusCode)
@@ -295,10 +317,9 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	s.m.Upstream(prov.Name, upstreamDur)
 	s.m.Request(prov.Name, resp.StatusCode)
 
-	// Post-hoc audit selection: only after the response has fully completed.
+	// Post-hoc audit selection: enqueue if selected and response succeeded.
 	tPost := time.Now()
-	if ok && r.Context().Err() == nil && !s.cfg.OptedOut(bearer(r)) &&
-		audit.Selected(s.cfg.AuditSecret, requestID, prov.Rate()) {
+	if ok && auditSelected && t != nil && r.Context().Err() == nil {
 		job := &audit.Job{
 			AuditID:    audit.NewID("aud_"),
 			RequestID:  requestID,
@@ -327,15 +348,18 @@ func (s *Server) pipeJSON(w http.ResponseWriter, body io.Reader, t *tee, strip b
 		return false, busy
 	}
 	tp := time.Now()
-	var rb respBody
-	ok := json.Unmarshal(raw, &rb) == nil
-	if ok {
-		t.add(&rb)
-	}
 	out := raw
-	if strip && ok {
-		if nb, err := stripLogprobs(raw); err == nil {
-			out = nb
+	ok := true
+	if t != nil || strip {
+		var rb respBody
+		ok = json.Unmarshal(raw, &rb) == nil
+		if ok && t != nil {
+			t.add(&rb)
+		}
+		if strip && ok {
+			if nb, err := stripLogprobs(raw); err == nil {
+				out = nb
+			}
 		}
 	}
 	w.Header().Set("Content-Length", fmt.Sprint(len(out)))
@@ -355,7 +379,40 @@ func (s *Server) pipeStream(w http.ResponseWriter, body io.Reader, t *tee, strip
 	if fl != nil {
 		fl.Flush()
 	}
-	br := bufio.NewReaderSize(body, 64<<10)
+
+	br := bufioReaderPool.Get().(*bufio.Reader)
+	br.Reset(body)
+	defer bufioReaderPool.Put(br)
+
+	// Fast-path: when auditing is not active for this request and logprobs don't need stripping,
+	// stream directly without JSON unmarshaling of chunks.
+	if t == nil && !strip {
+		sawDone := false
+		for {
+			line, err := br.ReadBytes('\n')
+			if len(line) > 0 {
+				tp := time.Now()
+				trimmed := bytes.TrimSpace(line)
+				if bytes.HasPrefix(trimmed, dataPrefix) && bytes.Equal(bytes.TrimSpace(trimmed[len(dataPrefix):]), []byte("[DONE]")) {
+					sawDone = true
+				}
+				busy += time.Since(tp)
+				if _, werr := w.Write(line); werr != nil {
+					return false, busy
+				}
+				if len(trimmed) == 0 && fl != nil {
+					fl.Flush()
+				}
+			}
+			if err != nil {
+				if fl != nil {
+					fl.Flush()
+				}
+				return sawDone || errors.Is(err, io.EOF), busy
+			}
+		}
+	}
+
 	sawDone := false
 	for {
 		line, err := br.ReadBytes('\n')
@@ -370,7 +427,9 @@ func (s *Server) pipeStream(w http.ResponseWriter, body io.Reader, t *tee, strip
 				} else if len(payload) > 0 && payload[0] == '{' {
 					var rb respBody
 					if json.Unmarshal(payload, &rb) == nil {
-						t.add(&rb)
+						if t != nil {
+							t.add(&rb)
+						}
 						if strip {
 							if nb, e := stripLogprobs(payload); e == nil && !bytes.Equal(nb, payload) {
 								out = append(append([]byte("data: "), nb...), '\n')
@@ -392,7 +451,11 @@ func (s *Server) pipeStream(w http.ResponseWriter, body io.Reader, t *tee, strip
 				fl.Flush()
 			}
 			if errors.Is(err, io.EOF) {
-				return sawDone || t.finish != "", busy
+				finish := ""
+				if t != nil {
+					finish = t.finish
+				}
+				return sawDone || finish != "", busy
 			}
 			return false, busy
 		}

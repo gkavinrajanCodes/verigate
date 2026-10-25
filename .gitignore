@@ -5,10 +5,15 @@ __pycache__/
 .pytest_cache/
 data/
 bin/
-results/*
-!results/README.md
+.tools/
+*.exe
+*.exe~
+*.log
 verigate.yaml
 lab/prompts/long.jsonl
 lab/prompts/.cache/
-*.exe
 .env
+
+# Keep benchmark reports and results
+!results/*.md
+!results/*.json

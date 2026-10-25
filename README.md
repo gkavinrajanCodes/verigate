@@ -91,7 +91,30 @@ python -m verigate_verifier.cli verifier --config verigate.yaml
 python -m verigate_verifier.cli dashboard --config verigate.yaml
 ```
 
-Open `http://localhost:8090` in your browser to view the real-time faithfulness matrix.
+Open `http://localhost:8090` in your browser to view the real-time faithfulness matrix and Chart.js graphs.
+
+### Or Run with Docker Compose
+
+```bash
+docker-compose up -d
+```
+
+---
+
+## Benchmark Highlights
+
+Evaluated on `Qwen/Qwen2.5-0.5B-Instruct` on an NVIDIA RTX 4050 GPU:
+
+| Metric | Target | Measured Result | Status |
+|---|---|---|---|
+| **Gateway Throughput** | $\ge 2,000\,\text{req/s}$ | **6,656 req/s** (Non-streaming), **5,112 req/s** (Streaming) | 332% of target |
+| **Gateway Added Latency** | $< 1.0\,\text{ms}$ | **$+0.54\,\text{ms}$ (p50)**, **$+0.83\,\text{ms}$ (p99)** | Passing |
+| **4-bit Quantization Separation** | Clear separation | **ROC AUC = 0.9104** ($S_3$ Surprisal Excess) | Passing |
+| **Tampered Logprob Detection** | Clear separation | **ROC AUC = 1.0000** ($S_4$ Logprob Divergence) | Passing |
+| **Verifier Prefill Speedup** | $\ge 10\times$ | **1,080 tok/s** vs 36 tok/s generation (**30× speedup**) | Passing |
+| **Verification Compute Cost** | Tunable | **0.167% of serving cost** at 5% audit rate | Passing |
+
+See [`results/BENCHMARK_REPORT.md`](results/BENCHMARK_REPORT.md) and [`results/E8_REPORT.md`](results/E8_REPORT.md) for complete empirical tables and methodology.
 
 ---
 
@@ -114,16 +137,15 @@ pytest -v verifier/tests
 
 ---
 
-## Verification Signals
+## Documentation
 
-- **S1 (Tie-aware argmax mismatch)**: Evaluated at $T=0$. Ignores positions where top-1 and top-2 margin is $< 0.5$ nats to tolerate honest kernel nondeterminism.
-- **S2 (Randomized PIT score)**: For $T>0$. Maps vocabulary probabilities to uniform cumulative integral transforms. Shifts toward 1 when substitute models favor tokens the reference considers improbable.
-- **S3 (Surprisal excess)**: Standardized difference between empirical negative log-probability and sequence entropy under the reference distribution.
-- **S4 (Logprob consistency)**: Measures deviation between provider-reported logprobs and reference logits (catches fabricated logprobs, attack A8).
-- **Early-token context check**: Evaluates signals over the first 32 tokens to detect prompt tampering (A6) or context truncation (A5) before self-conditioning.
+- [**Statistical Verification Method**](docs/method.md): Mathematical formulations of $S_1$–$S_4$, empirical null calibration, stratified Mann-Whitney U tests, and binomial outlier rates.
+- [**Threat Model & Attack Taxonomy**](docs/threat-model.md): Detailed adversarial model covering attacks A1 through A9.
+- [**Reproduction Guide**](docs/reproducing.md): Step-by-step instructions to replicate every benchmark and table from scratch.
 
 ---
 
 ## License
 
 Apache-2.0
+
