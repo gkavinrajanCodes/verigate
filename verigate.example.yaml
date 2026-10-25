@@ -38,7 +38,37 @@ providers:
     base_url: "http://127.0.0.1:9000/s/q4/v1"
     models: { qwen2.5-0.5b-instruct: "qwen2.5-0.5b-instruct" }
     request_logprobs: true
-    audit_rate: 0.10
+    audit_rate: 1.0
+  lab-q8:
+    base_url: "http://127.0.0.1:9000/s/q8/v1"
+    models: { qwen2.5-0.5b-instruct: "qwen2.5-0.5b-instruct" }
+    request_logprobs: true
+    audit_rate: 1.0
+  lab-truncate:
+    base_url: "http://127.0.0.1:9000/s/truncate/v1"
+    models: { qwen2.5-0.5b-instruct: "qwen2.5-0.5b-instruct" }
+    request_logprobs: true
+    audit_rate: 1.0
+  lab-sysprompt:
+    base_url: "http://127.0.0.1:9000/s/sysprompt/v1"
+    models: { qwen2.5-0.5b-instruct: "qwen2.5-0.5b-instruct" }
+    request_logprobs: true
+    audit_rate: 1.0
+  lab-temp-cheat:
+    base_url: "http://127.0.0.1:9000/s/temp-cheat/v1"
+    models: { qwen2.5-0.5b-instruct: "qwen2.5-0.5b-instruct" }
+    request_logprobs: true
+    audit_rate: 1.0
+  lab-fake-logprobs:
+    base_url: "http://127.0.0.1:9000/s/fake-logprobs/v1"
+    models: { qwen2.5-0.5b-instruct: "qwen2.5-0.5b-instruct" }
+    request_logprobs: true
+    audit_rate: 1.0
+  mock:
+    base_url: "http://127.0.0.1:9099"
+    models: { qwen2.5-0.5b-instruct: "mock-model" }
+    request_logprobs: true
+    audit_rate: 0.05
   # openrouter:
   #   base_url: "https://openrouter.ai/api/v1"
   #   api_key_env: OPENROUTER_API_KEY
@@ -46,6 +76,7 @@ providers:
   #   pin_upstream_provider: "Together"        # adds provider.order=[...] + allow_fallbacks=false
   #   request_logprobs: true
   #   audit_rate: 0.05
+
 
 verifier:
   device: "auto"                               # auto | cuda | cpu

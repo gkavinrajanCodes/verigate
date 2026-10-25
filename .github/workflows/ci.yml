@@ -58,29 +58,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Go & Python
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.22"
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
 
       - name: Setup Redis
         uses: supercharge/redis-github-action@1.7.0
         with:
           redis-version: 7
 
-      - name: Build & Start Mock Upstream and Gateway
+      - name: Run Integration Smoke Test
         run: |
+          cp verigate.example.yaml verigate.yaml
           cd gateway
           go build -o mock-upstream ./cmd/mock-upstream
           ./mock-upstream --port 9099 &
+          MOCK_PID=$!
+
           go build -o verigate-gateway ./cmd/verigate-gateway
           export VERIGATE_AUDIT_SECRET="test-secret"
           ./verigate-gateway --config ../verigate.yaml &
-          sleep 2
+          GW_PID=$!
 
-      - name: Verify Proxy Health
-        run: |
-          curl -f http://127.0.0.1:8080/healthz || exit 1
+          echo "Waiting for Gateway on port 8080..."
+          for i in $(seq 1 20); do
+            if curl -s -f http://127.0.0.1:8080/healthz; then
+              echo "Gateway is up and healthy!"
+              break
+            fi
+            sleep 1
+          done
+
+          # Final verification: health check and mock proxy request
+          curl -f http://127.0.0.1:8080/healthz || (echo "Health check failed" && exit 1)
+
+          # Send a smoke chat completion request through gateway to mock upstream
+          curl -f -s -X POST http://127.0.0.1:8080/v1/chat/completions \
+            -H "Content-Type: application/json" \
+            -H "X-Verigate-Provider: mock" \
+            -d '{"model":"qwen2.5-0.5b-instruct","messages":[{"role":"user","content":"hello"}]}' || (echo "Chat completion proxy failed" && exit 1)
+
+          kill $GW_PID $MOCK_PID 2>/dev/null || true
+
